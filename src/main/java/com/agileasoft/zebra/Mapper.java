@@ -7,7 +7,7 @@ package com.agileasoft.zebra;
  */
 public abstract class Mapper<A, B> {
 
-	protected MapperFactory mapper;
+	protected IMapper mapper;
 
 	public abstract B mapAToB(final A source);
 
@@ -16,7 +16,7 @@ public abstract class Mapper<A, B> {
 		throw new UnsupportedOperationException("method not implemented.");
 	}
 
-	void setMapper(final MapperFactory mapper) {
+	void setMapper(final IMapper mapper) {
 		this.mapper = mapper;
 	}
 }

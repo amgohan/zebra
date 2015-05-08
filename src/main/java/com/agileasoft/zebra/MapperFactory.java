@@ -12,7 +12,7 @@ import java.util.Objects;
  * @author amgohan
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class MapperFactory {
+public class MapperFactory implements IMapper {
 
 	private final Map<String, Mapper> map = new HashMap<String, Mapper>();
 
@@ -38,6 +38,7 @@ public class MapperFactory {
 		}
 	}
 
+	@Override
 	public <A, B> B map(final A sourceObject, final Class<B> destinationClass) {
 
 		if (sourceObject == null) {
