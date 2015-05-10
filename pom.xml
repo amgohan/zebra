@@ -57,7 +57,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <source>${java.version}</source>
-          <target>1.5</target>
+          <target>${java.version}</target>
         </configuration>
       </plugin>
     </plugins>
