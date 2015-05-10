@@ -1,6 +1,7 @@
 package com.agileasoft.zebra;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,5 +59,30 @@ public class MapperProcessor {
 			returnList.add(this.map(a, destinationClass));
 		}
 		return returnList;
+	}
+
+	/**
+	 * @param sourceList
+	 * @param destinationClass
+	 * @param collectionImpl
+	 * @return
+	 */
+	public <A, B, C extends Collection<B>> Collection<B> map(final Collection<A> sourceList,
+			final Class<B> destinationClass,
+			final Class<C> collectionImpl) {
+
+		if (sourceList == null) {
+			return null;
+		}
+		Collection<B> returnCollection;
+		try {
+			returnCollection = collectionImpl.getConstructor().newInstance(sourceList.size());
+		} catch (final Exception exception) {
+			throw new IllegalStateException(exception.getMessage(), exception.getCause());
+		}
+		for (final A a : sourceList) {
+			returnCollection.add(this.map(a, destinationClass));
+		}
+		return returnCollection;
 	}
 }
