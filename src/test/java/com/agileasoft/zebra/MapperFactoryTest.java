@@ -14,14 +14,16 @@ import org.junit.Test;
 
 public class MapperFactoryTest {
 
-	private MapperFactory mapper;
+	private MapperFactory mapperFactory;
+
+	private MapperProcessor mapper;
 
 	private SourceObject source;
 
 	@Before
 	public void before() {
 
-		this.mapper = new MapperFactory();
+		this.mapperFactory = new MapperFactory();
 		this.source = new SourceObject();
 		this.source.attribute1 = "attribute1";
 		this.source.attribute2 = 2;
@@ -32,20 +34,22 @@ public class MapperFactoryTest {
 	public void givenMapperFactoryEmpty_whenMapping_fail() {
 
 		try {
+
+			this.mapper = this.mapperFactory.build();
 			@SuppressWarnings("unused")
 			final DestinationObject b = this.mapper.map(this.source, DestinationObject.class);
 			fail("must throw UnsupportedOperationException");
 		} catch (final Exception e) {
 			assertTrue("expected Exception is : UnsupportedOperationException", e instanceof UnsupportedOperationException);
 			assertEquals(	"No mapper defined for [com.agileasoft.zebra.MapperFactoryTest$SourceObject_com.agileasoft.zebra.MapperFactoryTest$DestinationObject] or [com.agileasoft.zebra.MapperFactoryTest$DestinationObject_com.agileasoft.zebra.MapperFactoryTest$SourceObject]",
-			             	e.getMessage());
+							e.getMessage());
 		}
 	}
 
 	@Test
 	public void givenMappingOneWay_whenMapAToB_success() {
 
-		this.mapper.register(new CustomMapperOneWay());
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).build();
 		final DestinationObject b = this.mapper.map(this.source, DestinationObject.class);
 		assertNotNull(b);
 		assertEquals(this.source.attribute1, b.getAttr1());
@@ -56,7 +60,7 @@ public class MapperFactoryTest {
 	@Test
 	public void givenMappingOneWay_whenMapListAToListB_success() {
 
-		this.mapper.registerAll(Arrays.asList(new Mapper[] { new CustomMapperOneWay() }));
+		this.mapper = this.mapperFactory.registerAll(Arrays.asList(new Mapper[] { new CustomMapperOneWay() })).build();
 		final List<SourceObject> listA = Arrays.asList(new SourceObject[] { this.source, this.source, this.source });
 		final List<DestinationObject> listB = this.mapper.map(listA, DestinationObject.class);
 		assertNotNull(listB);
@@ -72,7 +76,7 @@ public class MapperFactoryTest {
 	@Test
 	public void givenMappingOneWay_whenMapBToA_fail() {
 
-		this.mapper.register(new CustomMapperOneWay());
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).build();
 		final DestinationObject b = new DestinationObject();
 		b.setAttr1("bbbb");
 		b.setAttr2(0);
@@ -91,7 +95,7 @@ public class MapperFactoryTest {
 	@Test
 	public void givenMappingBidirectional_whenMapAToB_success() {
 
-		this.mapper.register(new CustomMapperBidirectional());
+		this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).build();
 		final DestinationObject b = this.mapper.map(this.source, DestinationObject.class);
 		assertNotNull(b);
 		assertEquals(this.source.attribute1, b.getAttr1());
@@ -102,7 +106,7 @@ public class MapperFactoryTest {
 	@Test
 	public void givenMappingBidirectional_whenMapBToA_success() {
 
-		this.mapper.register(new CustomMapperBidirectional());
+		this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).build();
 		final DestinationObject b = new DestinationObject();
 		b.setAttr1("bbbb");
 		b.setAttr2(0);
@@ -119,8 +123,7 @@ public class MapperFactoryTest {
 	public void givenRegister2MapperForSameSourceAndDestination_whenRegister_fail() {
 
 		try {
-			this.mapper.register(new CustomMapperBidirectional());
-			this.mapper.register(new CustomMapperOneWay());
+			this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).register(new CustomMapperOneWay()).build();
 			fail("must throw UnsupportedOperationException");
 		} catch (final Exception e) {
 			assertTrue(e instanceof UnsupportedOperationException);
@@ -195,7 +198,9 @@ public class MapperFactoryTest {
 		public DestinationObject mapAToB(final SourceObject pSource) {
 
 			final DestinationObject destination = new DestinationObject();
+			// whatever logic you want
 			destination.setAttr1(pSource.attribute1);
+
 			destination.setAttr2(pSource.attribute2);
 			destination.setAttr3(pSource.attributes3);
 			return destination;
