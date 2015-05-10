@@ -1,13 +1,16 @@
 package com.agileasoft.zebra;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +45,7 @@ public class MapperFactoryTest {
 		} catch (final Exception e) {
 			assertTrue("expected Exception is : UnsupportedOperationException", e instanceof UnsupportedOperationException);
 			assertEquals(	"No mapper defined for [com.agileasoft.zebra.MapperFactoryTest$SourceObject_com.agileasoft.zebra.MapperFactoryTest$DestinationObject] or [com.agileasoft.zebra.MapperFactoryTest$DestinationObject_com.agileasoft.zebra.MapperFactoryTest$SourceObject]",
-							e.getMessage());
+			             	e.getMessage());
 		}
 	}
 
@@ -120,6 +123,39 @@ public class MapperFactoryTest {
 	}
 
 	@Test
+	public void givenMappingWrappers_whenMapAToB_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).register(new DeepMappingMapper()).build();
+		final WrapperSourceObject wrapperSource = new WrapperSourceObject();
+		wrapperSource.source = this.source;
+		final WrapperDestinationObject wrapperCible = this.mapper.map(wrapperSource, WrapperDestinationObject.class);
+		assertNotNull(wrapperCible);
+		assertNotNull(wrapperCible.destination);
+		assertEquals(wrapperSource.source.attribute1, wrapperCible.destination.getAttr1());
+		assertEquals(wrapperSource.source.attribute2, wrapperCible.destination.getAttr2());
+		assertEquals(wrapperSource.source.attributes3, wrapperCible.destination.attr3);
+	}
+
+	@Test
+	public void givenMappingWrappers_whenMapListToSet_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).register(new DeepMappingMapper()).build();
+		final WrapperSourceObject wrapperSource = new WrapperSourceObject();
+		wrapperSource.source = this.source;
+		final Set<WrapperDestinationObject> setWrapperCible = this.mapper.map(	Arrays.asList(wrapperSource),
+		                                                                      	WrapperDestinationObject.class,
+		                                                                      	HashSet.class);
+		assertNotNull(setWrapperCible);
+		assertFalse(setWrapperCible.isEmpty());
+		assertEquals(1, setWrapperCible.size());
+		for (final WrapperDestinationObject wrapperCible : setWrapperCible) {
+			assertEquals(wrapperSource.source.attribute1, wrapperCible.destination.getAttr1());
+			assertEquals(wrapperSource.source.attribute2, wrapperCible.destination.getAttr2());
+			assertEquals(wrapperSource.source.attributes3, wrapperCible.destination.attr3);
+		}
+	}
+
+	@Test
 	public void givenRegister2MapperForSameSourceAndDestination_whenRegister_fail() {
 
 		try {
@@ -129,6 +165,14 @@ public class MapperFactoryTest {
 			assertTrue(e instanceof UnsupportedOperationException);
 			assertEquals("A Mapper<SourceObject, DestinationObject> is already registered.", e.getMessage());
 		}
+	}
+
+	class WrapperSourceObject {
+		public SourceObject source;
+	}
+
+	class WrapperDestinationObject {
+		public DestinationObject destination;
 	}
 
 	class SourceObject {
@@ -174,6 +218,18 @@ public class MapperFactoryTest {
 		public void setAttr3(final Date attr3) {
 
 			this.attr3 = attr3;
+		}
+
+	}
+
+	class DeepMappingMapper extends Mapper<WrapperSourceObject, WrapperDestinationObject> {
+
+		@Override
+		public WrapperDestinationObject mapAToB(final WrapperSourceObject source) {
+			final WrapperDestinationObject cible = new WrapperDestinationObject();
+			// the Mapper Parent has a field mapper which can call other registered mappers hear
+			cible.destination = this.mapper.map(source.source, DestinationObject.class);
+			return cible;
 		}
 
 	}

@@ -67,16 +67,14 @@ public class MapperProcessor {
 	 * @param collectionImpl
 	 * @return
 	 */
-	public <A, B, C extends Collection<B>> Collection<B> map(final Collection<A> sourceList,
-			final Class<B> destinationClass,
-			final Class<C> collectionImpl) {
+	public <A, B, C extends Collection<B>> C map(final Collection<A> sourceList, final Class<B> destinationClass, final Class<C> collectionImpl) {
 
 		if (sourceList == null) {
 			return null;
 		}
-		Collection<B> returnCollection;
+		final C returnCollection;
 		try {
-			returnCollection = collectionImpl.getConstructor().newInstance(sourceList.size());
+			returnCollection = collectionImpl.getConstructor(int.class).newInstance(sourceList.size());
 		} catch (final Exception exception) {
 			throw new IllegalStateException(exception.getMessage(), exception.getCause());
 		}
