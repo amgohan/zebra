@@ -15,6 +15,9 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * @author amgohan
+ */
 public class MapperFactoryTest {
 
 	private MapperFactory mapperFactory;
@@ -45,7 +48,7 @@ public class MapperFactoryTest {
 		} catch (final Exception e) {
 			assertTrue("expected Exception is : UnsupportedOperationException", e instanceof UnsupportedOperationException);
 			assertEquals(	"No mapper defined for [com.agileasoft.zebra.MapperFactoryTest$SourceObject_com.agileasoft.zebra.MapperFactoryTest$DestinationObject] or [com.agileasoft.zebra.MapperFactoryTest$DestinationObject_com.agileasoft.zebra.MapperFactoryTest$SourceObject]",
-			             	e.getMessage());
+							e.getMessage());
 		}
 	}
 
@@ -143,8 +146,8 @@ public class MapperFactoryTest {
 		final WrapperSourceObject wrapperSource = new WrapperSourceObject();
 		wrapperSource.source = this.source;
 		final Set<WrapperDestinationObject> setWrapperCible = this.mapper.map(	Arrays.asList(wrapperSource),
-		                                                                      	WrapperDestinationObject.class,
-		                                                                      	HashSet.class);
+																				WrapperDestinationObject.class,
+																				HashSet.class);
 		assertNotNull(setWrapperCible);
 		assertFalse(setWrapperCible.isEmpty());
 		assertEquals(1, setWrapperCible.size());
