@@ -1,3 +1,4 @@
 language: java
 jdk:
 	- oraclejdk5
+mvn install
