@@ -2,20 +2,25 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
+	<parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
 	<groupId>com.agileasoft</groupId>
 	<artifactId>zebra</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>Zebra objects mapping</name>
-	<inceptionYear>2015</inceptionYear>
+	<url>https://github.com/amgohan/${project.artifactId}/</url>
 	<organization>
 		<name>Agileasoft</name>
 		<url>http://amgohan.agileasoft.com</url>
 	</organization>
-	<description>zebra objects mapping</description>
+	<description>DIY objects mapping and use zebra for unified way to inject mappers</description>
 	<developers>
 		<developer>
-			<name>amgohan</name>
-			<id>amgohan</id>
+			<name>Sidi Amine Bouhamidi</name>
+			<id>amine.bouhamidi@gmail.com</id>
 			<email>amine.bouhamidi@gmail.com</email>
 			<roles>
 				<role>Software Developer</role>
@@ -24,18 +29,20 @@
 	</developers>
 	<issueManagement>
 		<system>github</system>
-		<url>https://github.com/amgohan/zebra/issues</url>
+		<url>https://github.com/amgohan/${project.artifactId}/issues</url>
 	</issueManagement>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
 			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<comments>A business-friendly OSS license</comments>
+			<distribution>repo</distribution>
 		</license>
 	</licenses>
 	<scm>
-		<url>https://github.com/amgohan/${project.artifactId}</url>
-	</scm>
+        <url>https://github.com/amgohan/${project.artifactId}</url>
+        <connection>scm:git:https://github.com/amgohan/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:https://github.com/amgohan/${project.artifactId}.git</developerConnection>
+    </scm>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.5</java.version>
@@ -74,4 +81,7 @@
 			</plugin>
 		</plugins>
 	</build>
+	<prerequisites>
+        <maven>3.0.0</maven>
+    </prerequisites>
 </project>
