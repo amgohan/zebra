@@ -10,6 +10,8 @@ import java.util.Objects;
 import com.agileasoft.zebra.util.ZebraUtils;
 
 /**
+ * The factory that register all mappers and create a MapperProcessor.
+ *
  * @author amgohan
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -19,6 +21,17 @@ public class MapperFactory {
 
 	boolean mapperProcessorCreated = false;
 
+	/**
+	 * register a unique mapper.
+	 *
+	 * @param customMapper
+	 *            a mapper thant extends from the abstract Mapper.
+	 * @param <A>
+	 *            source class
+	 * @param <B>
+	 *            destination class
+	 * @return this
+	 */
 	public <A, B> MapperFactory register(final Mapper<A, B> customMapper) {
 		if (this.mapperProcessorCreated) {
 			throw new IllegalStateException("You can't register a new mapper after calling build method.");
@@ -35,6 +48,17 @@ public class MapperFactory {
 		return this;
 	}
 
+	/**
+	 * register a list of mappers.
+	 *
+	 * @param customMappers
+	 *            list of mappers that extends from the abstract Mapper.
+	 * @param <A>
+	 *            source class
+	 * @param <B>
+	 *            destination class
+	 * @return this
+	 */
 	public <A, B> MapperFactory registerAll(final List<? extends Mapper> customMappers) {
 
 		for (final Mapper<A, B> customMapper : customMappers) {
@@ -43,6 +67,11 @@ public class MapperFactory {
 		return this;
 	}
 
+	/**
+	 * create a MapperProcessor which will be injected anywhere you want.
+	 *
+	 * @return an instance of MapperProcessor.
+	 */
 	public MapperProcessor build() {
 		if (this.mapperProcessorCreated) {
 			throw new IllegalStateException("build method can be called one time.");

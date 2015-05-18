@@ -1,5 +1,10 @@
 package com.agileasoft.zebra.util;
 
+/**
+ * All utils methods of Zebra framework.
+ *
+ * @author amgohan
+ */
 public final class ZebraUtils {
 
 	private ZebraUtils() {
@@ -12,7 +17,7 @@ public final class ZebraUtils {
 	 *            source object
 	 * @param classB
 	 *            destination object
-	 * @return
+	 * @return the unique name of a mapper.
 	 */
 	public static String getMapperKey(final Class<?> classA, final Class<?> classB) {
 		final StringBuilder mapKey = new StringBuilder();
