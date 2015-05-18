@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.agileasoft</groupId>
 	<artifactId>zebra</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>Zebra objects mapping</name>
 	<url>https://github.com/amgohan/${project.artifactId}/</url>
 	<organization>
