@@ -1,5 +1,14 @@
 # Zebra ![](https://travis-ci.org/amgohan/zebra.svg?branch=master)
 DIY objects mapping and use zebra for unified way to inject mappers.
+* for the sake of performance, you do objects mapping manually and don't know how organize your mappers. Zebra come with a simple way to :
+  * create your mappers
+  * manage one way and reverse mapping in one class
+  * register your mappers and reuse them everywhere
+  * manage deep mapping
+
+zebra-1.0.0.jar is only 7.8K
+
+[See the whole example with unit tests here](https://github.com/amgohan/zebra-examples/tree/master/zebra-javaonly)
 
 Maven
 =====
