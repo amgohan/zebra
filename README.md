@@ -6,7 +6,7 @@ DIY objects mapping and use zebra for unified way to inject mappers.
   * register your mappers and reuse them anywhere in your application
   * manage deep mapping
 
-zebra-1.0.0.jar is only 9.1K, require java >= 1.5
+zebra-1.1.0.jar is only 9.1K, require java >= 1.5
 
 [See the whole example with unit tests here](https://github.com/amgohan/zebra-examples/tree/master/zebra-javaonly)
 
