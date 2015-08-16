@@ -2,6 +2,7 @@ package com.agileasoft.zebra;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import com.agileasoft.zebra.util.ZebraUtils;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MapperFactory {
 
-	private final Map<String, Mapper> map = new HashMap<String, Mapper>();
+	private final Map<String, List<Mapper>> mappers = new HashMap<String, List<Mapper>>();
 
 	boolean mapperProcessorCreated = false;
 
@@ -41,10 +42,11 @@ public class MapperFactory {
 		final Class<A> classA = (Class<A>) mapperGenericTypes[0];
 		final Class<B> classB = (Class<B>) mapperGenericTypes[1];
 		final String mapperKey = ZebraUtils.getMapperKey(classA, classB);
-		if (this.map.containsKey(mapperKey)) {
-			throw new UnsupportedOperationException("A Mapper<" + classA.getSimpleName() + ", " + classB.getSimpleName() + "> is already registered.");
+
+		if (!this.mappers.containsKey(mapperKey)) {
+			this.mappers.put(mapperKey, new ArrayList<Mapper>());
 		}
-		this.map.put(mapperKey, customMapper);
+		this.mappers.get(mapperKey).add(customMapper);
 		return this;
 	}
 
@@ -76,8 +78,9 @@ public class MapperFactory {
 		if (this.mapperProcessorCreated) {
 			throw new IllegalStateException("build method can be called one time.");
 		}
-		final MapperProcessor mapperProcessor = new MapperProcessor(this.map);
-		this.map.clear();
+		final MapperProcessor mapperProcessor = new MapperProcessor(this.mappers);
+		this.mappers.clear();
+		this.mapperProcessorCreated = true;
 		return mapperProcessor;
 	}
 }

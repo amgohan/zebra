@@ -15,6 +15,8 @@ public abstract class Mapper<A, B> {
 
 	protected MapperProcessor mapper;
 
+	private boolean isSetMapperCalled = false;
+
 	/**
 	 * Method to map an instance of type A to an instance of type B.
 	 *
@@ -36,7 +38,17 @@ public abstract class Mapper<A, B> {
 		throw new UnsupportedOperationException("method not implemented.");
 	}
 
-	void setMapper(final MapperProcessor mapper) {
+	/**
+	 * this setter can be called one time for a specific mapper.
+	 *
+	 * @param mapper
+	 *            MapperProcessor
+	 */
+	public void setMapper(final MapperProcessor mapper) {
+		if (this.isSetMapperCalled) {
+			throw new IllegalStateException("mapper can't be setted more than once.");
+		}
 		this.mapper = mapper;
+		this.isSetMapperCalled = true;
 	}
 }

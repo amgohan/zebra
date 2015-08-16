@@ -3,6 +3,7 @@ package com.agileasoft.zebra;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -52,6 +53,22 @@ public class MapperFactoryTest {
 		}
 	}
 
+	@Test(expected = IllegalStateException.class)
+	public void givenMapperFactory_whenBuildTwice_thenThrowException() {
+
+		this.mapperFactory.register(new CustomMapperOneWay());
+		this.mapperFactory.build();
+		this.mapperFactory.build();
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void givenMapperFactory_whenRegisterAfterBuild_thenThrowException() {
+
+		this.mapperFactory.register(new CustomMapperOneWay());
+		this.mapperFactory.build();
+		this.mapperFactory.register(new CustomMapperOneWay());
+	}
+
 	@Test
 	public void givenMappingOneWay_whenMapAToB_success() {
 
@@ -61,6 +78,48 @@ public class MapperFactoryTest {
 		assertEquals(this.source.attribute1, b.getAttr1());
 		assertEquals(this.source.attribute2, b.getAttr2());
 		assertEquals(this.source.attributes3, b.attr3);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void givenMappingOneWayTwice_whenMapAToB_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).register(new CustomMapperOneWay()).build();
+		this.mapper.map(this.source, DestinationObject.class);
+	}
+
+	@Test
+	public void givenMappingOneWay_whenMapAToBWithANull_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).build();
+		final DestinationObject b = this.mapper.map((SourceObject) null, DestinationObject.class);
+		assertNull(b);
+	}
+
+	@Test
+	public void givenMappingOneWay_whenStraightMap_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).build();
+		final DestinationObject b = this.mapper.straightMap(this.source, CustomMapperOneWay.class);
+		assertNotNull(b);
+		assertEquals(this.source.attribute1, b.getAttr1());
+		assertEquals(this.source.attribute2, b.getAttr2());
+		assertEquals(this.source.attributes3, b.attr3);
+	}
+
+	@Test
+	public void givenMappingOneWay_whenStraightMapWithANull_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).build();
+		final DestinationObject b = this.mapper.straightMap((SourceObject) null, CustomMapperOneWay.class);
+		assertNull(b);
+	}
+
+	@Test
+	public void givenMappingOneWay_whenReverseMapWithBNull_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).build();
+		final SourceObject a = this.mapper.reverseMap((DestinationObject) null, CustomMapperOneWay.class);
+		assertNull(a);
 	}
 
 	@Test
@@ -77,6 +136,66 @@ public class MapperFactoryTest {
 			assertEquals(this.source.attribute2, b.getAttr2());
 			assertEquals(this.source.attributes3, b.getAttr3());
 		}
+	}
+
+	@Test
+	public void givenMappingOneWay_whenMapListAToListBAndANull_success() {
+
+		this.mapper = this.mapperFactory.registerAll(Arrays.asList(new Mapper[] { new CustomMapperOneWay() })).build();
+		final List<DestinationObject> listB = this.mapper.map((List) null, DestinationObject.class);
+		assertNull(listB);
+	}
+
+	@Test
+	public void givenMappingOneWay_whenStraightMapList_success() {
+
+		this.mapper = this.mapperFactory.registerAll(Arrays.asList(new Mapper[] { new CustomMapperOneWay(), new CustomMapperOneWay() })).build();
+		final List<SourceObject> listA = Arrays.asList(new SourceObject[] { this.source, this.source, this.source });
+		final List<DestinationObject> listB = this.mapper.straightMap(listA, CustomMapperOneWay.class);
+		assertNotNull(listB);
+		assertEquals(3, listB.size());
+		for (final DestinationObject b : listB) {
+			assertNotNull(b);
+			assertEquals(this.source.attribute1, b.getAttr1());
+			assertEquals(this.source.attribute2, b.getAttr2());
+			assertEquals(this.source.attributes3, b.getAttr3());
+		}
+	}
+
+	@Test
+	public void givenMappingOneWay_whenStraightMapListWithANull_success() {
+
+		this.mapper = this.mapperFactory.registerAll(Arrays.asList(new Mapper[] { new CustomMapperOneWay(), new CustomMapperOneWay() })).build();
+		final List<DestinationObject> listB = this.mapper.straightMap((List) null, CustomMapperOneWay.class);
+		assertNull(listB);
+	}
+
+	@Test
+	public void givenMappingBidirectional_whenReverseMapList_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).build();
+		final DestinationObject b = new DestinationObject();
+		b.setAttr1("bbbb");
+		b.setAttr2(0);
+		b.setAttr3(new Date());
+		final List<DestinationObject> listB = Arrays.asList(b, b);
+		final List<SourceObject> listA = this.mapper.reverseMap(listB, CustomMapperBidirectional.class);
+		assertNotNull(listA);
+		assertEquals(2, listA.size());
+		assertEquals(b.getAttr1(), listA.get(0).attribute1);
+		assertEquals(b.getAttr2(), listA.get(0).attribute2);
+		assertEquals(b.getAttr3(), listA.get(0).attributes3);
+		assertEquals(b.getAttr1(), listA.get(1).attribute1);
+		assertEquals(b.getAttr2(), listA.get(1).attribute2);
+		assertEquals(b.getAttr3(), listA.get(1).attributes3);
+	}
+
+	@Test
+	public void givenMappingBidirectional_whenReverseMapListWithBNull_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).build();
+		final List<SourceObject> listA = this.mapper.reverseMap((List) null, CustomMapperBidirectional.class);
+		assertNull(listA);
 	}
 
 	@Test
@@ -99,10 +218,40 @@ public class MapperFactoryTest {
 	}
 
 	@Test
+	public void givenMappingOneWay_whenReverseMap_fail() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).build();
+		final DestinationObject b = new DestinationObject();
+		b.setAttr1("bbbb");
+		b.setAttr2(0);
+		b.setAttr3(new Date());
+		try {
+			@SuppressWarnings("unused")
+			final SourceObject a = this.mapper.reverseMap(b, CustomMapperOneWay.class);
+			fail("must throw UnsupportedOperationException");
+		} catch (final Exception e) {
+			assertTrue(e instanceof UnsupportedOperationException);
+			assertEquals("method not implemented.", e.getMessage());
+		}
+
+	}
+
+	@Test
 	public void givenMappingBidirectional_whenMapAToB_success() {
 
 		this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).build();
 		final DestinationObject b = this.mapper.map(this.source, DestinationObject.class);
+		assertNotNull(b);
+		assertEquals(this.source.attribute1, b.getAttr1());
+		assertEquals(this.source.attribute2, b.getAttr2());
+		assertEquals(this.source.attributes3, b.attr3);
+	}
+
+	@Test
+	public void givenMappingBidirectional_whenStraightMap_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).build();
+		final DestinationObject b = this.mapper.straightMap(this.source, CustomMapperBidirectional.class);
 		assertNotNull(b);
 		assertEquals(this.source.attribute1, b.getAttr1());
 		assertEquals(this.source.attribute2, b.getAttr2());
@@ -126,6 +275,22 @@ public class MapperFactoryTest {
 	}
 
 	@Test
+	public void givenMappingBidirectional_whenReverseMap_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).build();
+		final DestinationObject b = new DestinationObject();
+		b.setAttr1("bbbb");
+		b.setAttr2(0);
+		b.setAttr3(new Date());
+
+		final SourceObject a = this.mapper.reverseMap(b, CustomMapperBidirectional.class);
+		assertNotNull(b);
+		assertEquals(b.getAttr1(), a.attribute1);
+		assertEquals(b.getAttr2(), a.attribute2);
+		assertEquals(b.getAttr3(), a.attributes3);
+	}
+
+	@Test
 	public void givenMappingWrappers_whenMapAToB_success() {
 
 		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).register(new DeepMappingMapper()).build();
@@ -137,6 +302,40 @@ public class MapperFactoryTest {
 		assertEquals(wrapperSource.source.attribute1, wrapperCible.destination.getAttr1());
 		assertEquals(wrapperSource.source.attribute2, wrapperCible.destination.getAttr2());
 		assertEquals(wrapperSource.source.attributes3, wrapperCible.destination.attr3);
+	}
+
+	@Test
+	public void givenMappingWrappers_whenStraightMap_success() {
+
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay())
+										.register(new DeepMappingMapper())
+										.register(new CustomMapperOneWay())
+										.build();
+		final WrapperSourceObject wrapperSource = new WrapperSourceObject();
+		wrapperSource.source = this.source;
+		final WrapperDestinationObject wrapperCible = this.mapper.straightMap(wrapperSource, DeepMappingMapper.class);
+		assertNotNull(wrapperCible);
+		assertNotNull(wrapperCible.destination);
+		assertEquals(wrapperSource.source.attribute1, wrapperCible.destination.getAttr1());
+		assertEquals(wrapperSource.source.attribute2, wrapperCible.destination.getAttr2());
+		assertEquals(wrapperSource.source.attributes3, wrapperCible.destination.attr3);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void givenNoMapper_whenStraightMap_success() {
+
+		this.mapper = this.mapperFactory.build();
+		final WrapperSourceObject wrapperSource = new WrapperSourceObject();
+		wrapperSource.source = this.source;
+		this.mapper.straightMap(wrapperSource, DeepMappingMapper.class);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void givenNoMapper_whenReverseMap_success() {
+
+		this.mapper = this.mapperFactory.build();
+		final WrapperDestinationObject wrapperDestination = new WrapperDestinationObject();
+		this.mapper.reverseMap(wrapperDestination, DeepMappingMapper.class);
 	}
 
 	@Test
@@ -159,15 +358,13 @@ public class MapperFactoryTest {
 	}
 
 	@Test
-	public void givenRegister2MapperForSameSourceAndDestination_whenRegister_fail() {
+	public void givenMappingWrappers_whenMapListToSetWithListNull_success() {
 
-		try {
-			this.mapper = this.mapperFactory.register(new CustomMapperBidirectional()).register(new CustomMapperOneWay()).build();
-			fail("must throw UnsupportedOperationException");
-		} catch (final Exception e) {
-			assertTrue(e instanceof UnsupportedOperationException);
-			assertEquals("A Mapper<SourceObject, DestinationObject> is already registered.", e.getMessage());
-		}
+		this.mapper = this.mapperFactory.register(new CustomMapperOneWay()).register(new DeepMappingMapper()).build();
+		final WrapperSourceObject wrapperSource = new WrapperSourceObject();
+		wrapperSource.source = this.source;
+		final Set<WrapperDestinationObject> setWrapperCible = this.mapper.map((List) null, WrapperDestinationObject.class, HashSet.class);
+		assertNull(setWrapperCible);
 	}
 
 	class WrapperSourceObject {
@@ -231,7 +428,7 @@ public class MapperFactoryTest {
 		public WrapperDestinationObject mapAToB(final WrapperSourceObject source) {
 			final WrapperDestinationObject cible = new WrapperDestinationObject();
 			// the Mapper Parent has a field mapper which can call other registered mappers hear
-			cible.destination = this.mapper.map(source.source, DestinationObject.class);
+			cible.destination = this.mapper.straightMap(source.source, CustomMapperOneWay.class);
 			return cible;
 		}
 
