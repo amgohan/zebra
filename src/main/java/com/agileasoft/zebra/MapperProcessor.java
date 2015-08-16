@@ -34,7 +34,8 @@ import com.agileasoft.zebra.util.ZebraUtils;
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MapperProcessor {
-	private final Map<String, Mapper> mappers;
+	private final Map<String, List<Mapper>> mappers;
+	private final Map<Class<? extends Mapper>, Mapper> mappersByClass;
 
 	/**
 	 * constructor with params.
@@ -46,11 +47,15 @@ public class MapperProcessor {
 	 *            <li>value : an instance of Mapper&lt;ClassA, ClassB&gt;</li>
 	 *            </ul>
 	 */
-	public MapperProcessor(final Map<String, Mapper> mappers) {
+	public MapperProcessor(final Map<String, List<Mapper>> mappers) {
 		Objects.requireNonNull(mappers, "Mappers store must be not null.");
-		this.mappers = new HashMap<String, Mapper>();
-		for (final Entry<String, Mapper> entryMapper : mappers.entrySet()) {
-			entryMapper.getValue().setMapper(this);
+		this.mappers = new HashMap<String, List<Mapper>>(mappers.size());
+		this.mappersByClass = new HashMap<Class<? extends Mapper>, Mapper>();
+		for (final Entry<String, List<Mapper>> entryMapper : mappers.entrySet()) {
+			for (final Mapper mapper : entryMapper.getValue()) {
+				mapper.setMapper(this);
+				this.mappersByClass.put(mapper.getClass(), mapper);
+			}
 			this.mappers.put(entryMapper.getKey(), entryMapper.getValue());
 		}
 	}
@@ -81,15 +86,9 @@ public class MapperProcessor {
 
 		final String aTb = ZebraUtils.getMapperKey(sourceClass, destinationClass);
 		final String bTa = ZebraUtils.getMapperKey(destinationClass, sourceClass);
-		final Mapper<A, B> customMapperAToB = this.mappers.get(aTb);
-		final Mapper<B, A> customMapperBToA = this.mappers.get(bTa);
-		if (customMapperAToB != null) {
-			return customMapperAToB.mapAToB(sourceObject);
-		}
-		if (customMapperBToA != null) {
-			return customMapperBToA.mapBToA(sourceObject);
-		}
-		throw new UnsupportedOperationException("No mapper defined for [" + aTb + "] or [" + bTa + "]");
+		final Mapper<A, B> customMapperAToB = this.getMapper(this.mappers.get(aTb));
+		final Mapper<B, A> customMapperBToA = this.getMapper(this.mappers.get(bTa));
+		return this.proceedMapping(sourceObject, aTb, bTa, customMapperAToB, customMapperBToA);
 	}
 
 	/**
@@ -106,7 +105,6 @@ public class MapperProcessor {
 	 * @return List of type B.
 	 */
 	public <A, B> List<B> map(final List<A> sourceList, final Class<B> destinationClass) {
-
 		if (sourceList == null) {
 			return null;
 		}
@@ -142,6 +140,8 @@ public class MapperProcessor {
 		if (sourceList == null) {
 			return null;
 		}
+		Objects.requireNonNull(destinationClass, "destinationClass must be not null.");
+		Objects.requireNonNull(collectionImpl, "collectionImpl must be not null.");
 		final C returnCollection;
 		try {
 			returnCollection = collectionImpl.getConstructor(int.class).newInstance(sourceList.size());
@@ -152,5 +152,124 @@ public class MapperProcessor {
 			returnCollection.add(this.map(a, destinationClass));
 		}
 		return returnCollection;
+	}
+
+	/**
+	 * This method call mapAtoB from the registred mapper passed in param.<br>
+	 * The mapper of this class passed in params must be already registred. If not an exception will be thrown.
+	 *
+	 * @param sourceObject
+	 *            the source instance of type A.
+	 * @param mapperClass
+	 *            the concret mapper Class.
+	 * @return instance of type B.
+	 */
+	public <A, B> B straightMap(final A sourceObject, final Class<? extends Mapper<A, B>> mapperClass) {
+		if (sourceObject == null) {
+			return null;
+		}
+		Objects.requireNonNull(mapperClass, "mapperClass must be not null.");
+		return this.getMapper(mapperClass).mapAToB(sourceObject);
+	}
+
+	/**
+	 * This method map a list of source object to list of destination objects, it calls straightMap in a loop.<br>
+	 * The mapper of this class passed in params must be already registred. If not an exception will be thrown.
+	 *
+	 * @param sourceObject
+	 *            List of source instance of type A.
+	 * @param mapperClass
+	 *            the concret mapper Class.
+	 * @return list of instance of type B.
+	 */
+	public <A, B> List<B> straightMap(final List<A> sourceObject, final Class<? extends Mapper<A, B>> mapperClass) {
+		if (sourceObject == null) {
+			return null;
+		}
+		Objects.requireNonNull(mapperClass, "mapperClass must be not null.");
+		final Mapper<A, B> mapper = this.getMapper(mapperClass);
+		final List<B> returnList = new ArrayList<B>(sourceObject.size());
+		for (final A a : sourceObject) {
+			returnList.add(mapper.mapAToB(a));
+		}
+		return returnList;
+	}
+
+	/**
+	 * This method call mapBToA from the registred mapper passed in param.<br>
+	 * The mapper of this class passed in params must be already registred. If not an exception will be thrown.
+	 *
+	 * @param sourceObject
+	 *            the source instance of type B.
+	 * @param mapperClass
+	 *            the concret mapper Class.
+	 * @return instance of type A.
+	 */
+	public <A, B> A reverseMap(final B sourceObject, final Class<? extends Mapper<A, B>> mapperClass) {
+		if (sourceObject == null) {
+			return null;
+		}
+		Objects.requireNonNull(mapperClass, "mapperClass must be not null.");
+		return this.getMapper(mapperClass).mapBToA(sourceObject);
+	}
+
+	/**
+	 * This method map a list of source object to list of destination objects, it calls reverseMap in a loop.<br>
+	 * The mapper of this class passed in params must be already registred. If not an exception will be thrown.
+	 *
+	 * @param sourceObject
+	 *            List of source instance of type B.
+	 * @param mapperClass
+	 *            the concret mapper Class.
+	 * @return list of instance of type A.
+	 */
+	public <A, B> List<A> reverseMap(final List<B> sourceObject, final Class<? extends Mapper<A, B>> mapperClass) {
+		if (sourceObject == null) {
+			return null;
+		}
+		Objects.requireNonNull(mapperClass, "mapperClass must be not null.");
+		final Mapper<A, B> mapper = this.getMapper(mapperClass);
+		final List<A> returnList = new ArrayList<A>(sourceObject.size());
+		for (final B b : sourceObject) {
+			returnList.add(mapper.mapBToA(b));
+		}
+		return returnList;
+	}
+
+	private Mapper getMapper(final List<Mapper> mappers) {
+		if (mappers == null) {
+			return null;
+		}
+		if (mappers.size() > 1) {
+			final List<String> mappersName = new ArrayList<String>(mappers.size());
+			for (final Mapper mapper : mappers) {
+				mappersName.add(mapper.getClass().getCanonicalName());
+			}
+			throw new IllegalStateException("there are two registred mappers : " + mappersName + ". Please call straightMap or reverseMap and specify one of the concret Mappers.");
+		} else {
+			return mappers.get(0);
+		}
+	}
+
+	private <A, B> B proceedMapping(final A sourceObject,
+			final String aTb,
+			final String bTa,
+			final Mapper<A, B> customMapperAToB,
+			final Mapper<B, A> customMapperBToA) {
+		if (customMapperAToB != null) {
+			return customMapperAToB.mapAToB(sourceObject);
+		}
+		if (customMapperBToA != null) {
+			return customMapperBToA.mapBToA(sourceObject);
+		}
+		throw new UnsupportedOperationException("No mapper defined for [" + aTb + "] or [" + bTa + "]");
+	}
+
+	private <A, B> Mapper<A, B> getMapper(final Class<? extends Mapper<A, B>> mapperClass) {
+		final Mapper<A, B> mapper = this.mappersByClass.get(mapperClass);
+		if (mapper == null) {
+			throw new IllegalStateException("this mapper is not registred :" + mapperClass.getCanonicalName());
+		}
+		return mapper;
 	}
 }
